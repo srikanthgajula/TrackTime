@@ -21,20 +21,12 @@ myApp.controller("employeeController", function($scope, $http, myFactory, $mdDia
 				{field : 'firstLogin',displayName: 'Login Time', enableColumnMenu: false, enableSorting: false}, 
 				{field : 'lastLogout',displayName: 'Logout Time', enableColumnMenu: false, enableSorting: false}, 
 				{field : 'totalLoginTime',displayName: 'Total Hours(HH:MM)', enableColumnMenu: false, enableSorting: false} 
-			],
-		onRegisterApi: function(gridApi) {
-		    gridApi.core.on.rowsRendered($scope, function(gridApi) {
-		    	var length = gridApi.grid.renderContainers.body.visibleRowCache.length;
-		    	if(length > 0){
-		    		//Need to make this value dynamic
-		    		$scope.avgLoginHrs = "07:55 Hrs";
-		    	}
-		    });
-		}
+			]
 	};
 	$scope.gridOptions.data = [];
 	
 	$scope.getEmployeeData = function(){
+		$scope.avgLoginHrs = "";
 		var fromDate = getFormattedDate($scope.fromDate);
 		var toDate = getFormattedDate($scope.toDate);
 		var empId = $scope.empId;
@@ -43,6 +35,9 @@ myApp.controller("employeeController", function($scope, $http, myFactory, $mdDia
 	        url : appConfig.appUri + "attendance/employeeLoginsBasedOnDate?empId=" + empId + "&fromDate=" + fromDate + "&toDate=" +toDate
 	    }).then(function mySuccess(response) {
 	        $scope.gridOptions.data = response.data;
+	        if(response.data.length > 0){
+	        	$scope.avgLoginHrs = response.data[0].totalAvgTime + " Hrs";
+	        }
 	    }, function myError(response) {
 	    	showAlert("Something went wrong while fetching data!!!");
 	    	$scope.gridOptions.data = [];
@@ -65,31 +60,30 @@ myApp.controller("employeeController", function($scope, $http, myFactory, $mdDia
 
 	$scope.validateDates = function(dateValue, from) {
 		if(from == "FromDate"){
-			var toDt = $scope.toDate;
-			var diff = daysBetween(dateValue, toDt);
-			if(diff < 30 ){
-				showAlert('Date range should have minimum of 30 days difference');
+			var toDat = $scope.toDate;
+			var difference = daysBetween(dateValue, toDat);
+			if(difference < 0 ){
+				showAlert('From Date should not be greater than To Date');
 				$scope.fromDate = priorDt;
 				$scope.toDate = today;
 			}else{
 				$scope.fromDate = dateValue;
-				$scope.toDate = getCalculatedDate(dateValue, 'Add');
+				$scope.toDate = toDat;
 			}
 		}else if(from == "ToDate"){
-			$scope.toDate = dateValue;
-			$scope.fromDate = getCalculatedDate(dateValue, 'Substract');
+			var fromDat = $scope.fromDate;
+			var differene = daysBetween(fromDat, dateValue);
+			if(differene < 0 ){
+				showAlert('To Date should not be less than From Date');
+				$scope.fromDate = priorDt;
+				$scope.toDate = today;
+			}else{
+				$scope.fromDate = fromDat;
+				$scope.toDate = dateValue;
+			}
 		}
 	};
 	
-	function getCalculatedDate(selectedDate, type){
-		var futureDt = null;
-		if(type == "Add"){
-			futureDt = new Date(selectedDate.getTime() + (30 * 24 * 60 * 60 * 1000));
-		}else {
-			futureDt = new Date(selectedDate.getTime() - (30 * 24 * 60 * 60 * 1000));
-		}
-		return futureDt;
-	}
 	
 	function showAlert(message) {
 		$mdDialog.show($mdDialog.alert().parent(

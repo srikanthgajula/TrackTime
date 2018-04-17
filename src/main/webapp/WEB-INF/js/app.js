@@ -1,8 +1,9 @@
 var myApp = angular.module(
 		"myTimeApp",
 		[ "ngRoute", "ngCookies", "ui.grid", "ui.grid.pagination",
-				"ngMaterial", "ui.bootstrap", "pdf" ]).config(
-		function($mdDateLocaleProvider) {
+
+				"ngMaterial", "ui.bootstrap", "pdf", 'ui.grid.selection', 'ui.grid.exporter','ui.grid.edit', 'ui.grid.cellNav','ngIdle' ]).config(
+function($mdDateLocaleProvider) {
 			$mdDateLocaleProvider.formatDate = function(date) {
 				var day = date.getDate();
 				var month = date.getMonth() + 1;
@@ -15,10 +16,13 @@ var myApp = angular.module(
 //TODO: Replace this appUri with the domain name created
 myApp.constant('appConfig', { 
 			appName: "MyTime", 
-			appUri: "http://192.168.15.17:8080/my-time/", 
+			appUri: "http://192.168.10.177:8080/myTime/", 
 			version:"1.0", 
 			empStartId:16001, 
-			empEndId:16999
+			empEndId:16999,
+			sessionIdle: 900,
+			timeOut: 3,
+			keepAlive: 5
 		});
 
 myApp.factory('myFactory', function() {
@@ -29,7 +33,10 @@ myApp.factory('myFactory', function() {
 	var menuItems = [];
 	var templateUrl = "";
 	var profileUrl = "";
-	
+	var designations="";
+	var technologies="";
+	var shifts="";
+	var accounts="";
 	function setEmpId(id) {
 		empId = id;
 	}
@@ -66,7 +73,35 @@ myApp.factory('myFactory', function() {
 	function getMenuItems() {
 		return menuItems;
 	}
+	function setDesignations(designations1) {
+		designations = designations1;
+	}
 
+	function getDesignations() {
+		return designations;
+	}
+	
+	function setAccounts(accounts1) {
+		accounts = accounts1;
+	}
+
+	function getAccounts() {
+		return accounts;
+	}
+	
+	function setTechnologies(technologies1) {
+		technologies = technologies1;
+	}
+	function getTechnologies() {
+		return technologies;
+	}
+	function setShifts(shifts1) {
+		shifts = shifts1;
+	}
+
+	function getShifts() {
+		return shifts;
+	}
 	function setTemplateUrl(url) {
 		templateUrl = url;
 	}
@@ -94,6 +129,14 @@ myApp.factory('myFactory', function() {
 		getEmpRole : getEmpRole,
 		setMenuItems : setMenuItems,
 		getMenuItems : getMenuItems,
+		setDesignations : setDesignations,
+		getDesignations : getDesignations,
+		setAccounts : setAccounts,
+		getAccounts : getAccounts,
+		setTechnologies : setTechnologies,
+		getTechnologies : getTechnologies,
+		setShifts : setShifts,
+		getShifts : getShifts,
 		setTemplateUrl : setTemplateUrl,
 		getTemplateUrl : getTemplateUrl,
 		setProfileUrl : setProfileUrl,
@@ -101,3 +144,114 @@ myApp.factory('myFactory', function() {
 	}
 
 });
+
+myApp.factory('exportUiGridService', exportUiGridService);
+
+    exportUiGridService.inject = ['uiGridExporterService'];
+    function exportUiGridService(uiGridExporterService) {
+        var service = {
+            exportToExcel: exportToExcel
+        };
+
+        return service;
+
+        function Workbook() {
+            if (!(this instanceof Workbook)) return new Workbook();
+            this.SheetNames = [];
+            this.Sheets = {};
+        }
+
+        function exportToExcel(sheetName, gridApi, rowTypes, colTypes) {
+            var columns = gridApi.grid.options.showHeader ? uiGridExporterService.getColumnHeaders(gridApi.grid, colTypes) : [];
+            var data = uiGridExporterService.getData(gridApi.grid, rowTypes, colTypes);
+            var fileName = gridApi.grid.options.exporterExcelFilename ? gridApi.grid.options.exporterExcelFilename : 'mytime';
+            fileName += '.xlsx';
+            var wb = new Workbook(),
+                ws = sheetFromArrayUiGrid(data, columns);
+            wb.SheetNames.push(sheetName);
+            wb.Sheets[sheetName] = ws;
+            var wbout = XLSX.write(wb, {
+                bookType: 'xlsx',
+                bookSST: true,
+                type: 'binary'
+            });
+            saveAs(new Blob([s2ab(wbout)], {
+                type: 'application/octet-stream'
+            }), fileName);
+        }
+
+        function sheetFromArrayUiGrid(data, columns) {
+            var ws = {};
+            var range = {
+                s: {
+                    c: 10000000,
+                    r: 10000000
+                },
+                e: {
+                    c: 0,
+                    r: 0
+                }
+            };
+            var C = 0;
+            columns.forEach(function (c) {
+                var v = c.displayName || c.value || columns[i].name;
+                addCell(range, v, 0, C, ws);
+                C++;
+            }, this);
+            var R = 1;
+            data.forEach(function (ds) {
+                C = 0;
+                ds.forEach(function (d) {
+                    var v = d.value;
+                    addCell(range, v, R, C, ws);
+                    C++;
+                });
+                R++;
+            }, this);
+            if (range.s.c < 10000000) ws['!ref'] = XLSX.utils.encode_range(range);
+            return ws;
+        }
+        /**
+         * 
+         * @param {*} data 
+         * @param {*} columns 
+         */
+
+        function datenum(v, date1904) {
+            if (date1904) v += 1462;
+            var epoch = Date.parse(v);
+            return (epoch - new Date(Date.UTC(1899, 11, 30))) / (24 * 60 * 60 * 1000);
+        }
+
+        function s2ab(s) {
+            var buf = new ArrayBuffer(s.length);
+            var view = new Uint8Array(buf);
+            for (var i = 0; i != s.length; ++i) view[i] = s.charCodeAt(i) & 0xFF;
+            return buf;
+        }
+
+        function addCell(range, value, row, col, ws) {
+            if (range.s.r > row) range.s.r = row;
+            if (range.s.c > col) range.s.c = col;
+            if (range.e.r < row) range.e.r = row;
+            if (range.e.c < col) range.e.c = col;
+            var cell = {
+                v: value
+            };
+            if (cell.v == null) cell.v = '-';
+            var cell_ref = XLSX.utils.encode_cell({
+                c: col,
+                r: row
+            });
+
+            if (typeof cell.v === 'number') cell.t = 'n';
+            else if (typeof cell.v === 'boolean') cell.t = 'b';
+            else if (cell.v instanceof Date) {
+                cell.t = 'n';
+                cell.z = XLSX.SSF._table[14];
+                cell.v = datenum(cell.v);
+            } else cell.t = 's';
+
+            ws[cell_ref] = cell;
+        }
+    }

@@ -1,0 +1,174 @@
+<div class="md-padding" style="width: 100%;height:100%; padding: 3px 0px 15px 0px;overflow-y: auto;"
+	id="popupContainer" ng-controller="profileController"
+	ng-init="getProfileData()">
+	<div class="container-fluid mainDivHeaderClass">
+		<div class="row">
+			<div class="col-lg-12">
+				<p align="center" class="col-xs-11"
+					style="vertical-align: middle; font-weight: bold; font-size: 30px;">My
+					Profile</p>
+				<p align="right" class="col-xs-1"
+					style="vertical-align: middle; font-weight: bold; font-size: 1.5em; margin-top: 8px; cursor: pointer;">
+					<i class="fa fa-refresh" aria-hidden="true"
+						ng-click="refreshPage()"></i>
+				</p>
+			</div>
+			<div class="clearfix"></div>
+		</div>
+	</div>
+	<br />
+	<div class="row col-lg-12 col-xs-12">
+		<div class="col-lg-2 col-xs-12"></div>
+		<div class="col-lg-6 col-xs-12">
+			<div class="row col-lg-12 col-xs-12">
+				<div class="col-lg-5 col-xs-6" >
+					<p>
+						<b>Employee ID</b>
+					</p>
+				</div>
+				<div class="col-lg-7 col-xs-6">
+					<p>
+						<b>:</b> {{profile.employeeId}}
+					</p>
+				</div>
+			</div>
+			<div class="row col-lg-12 col-xs-12">
+				<div class="col-lg-5 col-xs-6">
+					<p>
+						<b>Employee Name</b>
+					</p>
+				</div>
+				<div class="col-lg-7 col-xs-6">
+					<p>
+						<b>:</b> {{profile.employeeName}}
+					</p>
+				</div>
+			</div>
+			<div class="row col-lg-12 col-xs-12">
+				<div class="col-lg-5 col-xs-6">
+					<p>
+						<b>Email ID</b>
+					</p>
+				</div>
+				<div class="col-lg-7 col-xs-6">
+					<p>
+						<b>:</b> {{profile.emailId}}
+					</p>
+				</div>
+			</div>
+			<div class="row col-lg-12 col-xs-12">
+				<div class="col-lg-5 col-xs-6">
+					<p>
+						<b>Designation</b>
+					</p>
+				</div>
+				<div class="col-lg-7 col-xs-6">
+					<p>
+						<b>:</b> {{profile.designation}}
+					</p>
+				</div>
+
+			</div>
+			<div class="row col-lg-12 col-xs-12">
+				<div class="col-lg-5 col-xs-6">
+					<p>
+						<b>Role</b>
+					</p>
+				</div>
+				<div class="col-lg-7 col-xs-6">
+					<p>
+						<b>:</b> {{profile.role}}
+					</p>
+				</div>
+
+			</div>
+			<div class="row col-lg-12 col-xs-12">
+				<div class="col-lg-5 col-xs-6">
+					<p>
+						<b>Mobile Number</b>
+					</p>
+				</div>
+				<div class="col-lg-7 col-xs-6">
+					<p>
+						<b>:</b> {{profile.mobileNumber}}
+					</p>
+				</div>
+			</div>
+			<div class="row col-lg-12 col-xs-12">
+				<div class="col-lg-5 col-xs-6">
+					<p>
+						<b>Alt Mobile Number</b>
+					</p>
+				</div>
+				<div class="col-lg-7 col-xs-6">
+					<p>
+						<b>:</b> {{profile.alternateMobileNumber}}
+					</p>
+				</div>
+
+			</div>
+			<div class="row col-lg-12 col-xs-12">
+				<div class="col-lg-5 col-xs-6">
+					<p>
+						<b>Personal EmailId</b>
+					</p>
+				</div>
+				<div class="col-lg-7 col-xs-6">
+					<p>
+						<b>:</b> {{profile.personalEmailId}}
+					</p>
+				</div>
+			</div>
+			<div class="row col-lg-12 col-xs-12">
+				<div class="col-lg-5 col-xs-6">
+					<p>
+						<b>Shift</b>
+					</p>
+				</div>
+				<div class="col-lg-7 col-xs-6">
+					<p>
+						<b>:</b> {{profile.shift}}
+					</p>
+				</div>
+
+			</div>
+			<div class="row col-lg-12 col-xs-12">
+
+				<div class="col-lg-5 col-xs-6">
+					<p>
+						<b>Primary Skill</b>
+					</p>
+				</div>
+				<div class="col-lg-7 col-xs-6">
+					<p>
+						<b>:</b> {{profile.baseTechnology}}
+					</p>
+				</div>
+			</div>
+			<div class="row col-lg-12 col-xs-12">
+				<div class="col-lg-5 col-xs-6">
+					<p>
+						<b>Technologies Known</b>
+					</p>
+				</div>
+				<div class="col-lg-7 col-xs-6">
+					<p>
+						<b>:</b> {{profile.technologyKnown}}
+					</p>
+				</div>
+
+
+			</div>
+
+		</div>
+		<div class="col-lg-2" style="cursor: pointer; float: left;">
+			<md-button class="md-raised md-primary"
+				style="width:142px;background: cadetblue;"
+				ng-click="updateProfile()"> <i
+				class="fa fa-pencil-square-o fa-2x"
+				style="margin-top: 5px; font-size: 1.5em; float: left"></i> Update
+			Profile</md-button>
+		</div>
+		<div class="col-lg-2 col-xs-12"></div>
+	</div>
+</div>

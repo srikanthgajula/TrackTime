@@ -1,25 +1,26 @@
 package com.nisum.mytime.model;
 
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.Comparator;
 import java.util.Date;
 
-public class DateCompare implements Comparator<EmpLoginData> {
+import com.nisum.mytime.utils.MyTimeLogger;
+import com.nisum.mytime.utils.MyTimeUtils;
 
-	private static final SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+public class DateCompare implements Comparator<EmpLoginData> {
 
 	public int compare(EmpLoginData o1, EmpLoginData o2) {
 
 		Date first = null;
 		Date second = null;
 		try {
-			first = formatter.parse(o1.getFirstLogin());
-			second = formatter.parse(o2.getFirstLogin());
+			first = MyTimeUtils.df.parse(o1.getFirstLogin());
+			second = MyTimeUtils.df.parse(o2.getFirstLogin());
+			int result = (first.after(second) ? 1 : 0);
+			return (first.before(second) ? -1 : result);
 		} catch (ParseException e) {
-			e.printStackTrace();
+			MyTimeLogger.getInstance().info(e.getMessage());
 		}
-
-		return first.before(second) ? -1 : first.after(second) ? 1 : 0;
+		return -1;
 	}
 }

@@ -1,0 +1,57 @@
+
+<div class="md-padding" style="width: 100%; padding: 3px 0px 0px 0px;"
+	id="popupContainer" ng-controller="attendanceReportController" ng-init="getEmployeePresent('onload')">
+	<div class="container-fluid mainDivHeaderClass">
+		<div class="row">
+			<div class="col-lg-12">
+				<p align="center" class="col-xs-11"
+					style="vertical-align: middle; font-weight: bold; font-size: 30px;">Attendance Details</p>
+				<p align="right" class="col-xs-1"
+					style="vertical-align: middle; font-weight: bold; font-size: 1.5em; margin-top:8px;cursor:pointer;"><i class="fa fa-refresh" aria-hidden="true" ng-click="refreshPage()"></i></p>
+			</div>
+			<div class="clearfix"></div>
+		</div>
+	</div>
+	<br />
+	<div class="text-center">
+		<div class="row col-lg-12">
+			<div class="col-lg-3"></div>
+			<div class="col-lg-4 col-xs-12">
+				<p>
+					<b>Search Date:</b>
+					<md-datepicker ng-model="reportDate" md-placeholder="Enter date"
+						md-max-date="maxDate"
+						onkeydown="return false" ng-change="setSearchDate(reportDate)"></md-datepicker>
+				</p>
+			</div>
+			<div class="col-lg-2 col-xs-12" style="cursor: pointer;" align="right">
+				<md-button class="md-raised md-primary"
+					style="width:100px;background: cadetblue;" ng-click="getEmployeePresent('onclick')">
+				<i class="fa fa-search fa-2x"
+					style="margin-top: 5px; font-size: 1.5em; float: left"></i> Search</md-button>
+			</div>
+			<div class="col-lg-3"></div>
+		</div>
+		<div class="row col-lg-12" style="height: 15px;"></div>
+		<div class="row col-lg-12">
+			<div class="col-lg-3"></div>
+			<div class="col-lg-2 col-xs-12">
+				<p>
+					<b>Total Present:</b> {{totalPresent}}
+				</p>
+			</div>
+			<div class="col-lg-2 col-xs-12">
+				<p>
+					<b>Total Absent:</b> {{totalAbsent}}
+				</p>
+			</div>
+			<div class="col-lg-5"></div>
+		</div>
+		<div class="row col-lg-12" style="height: 15px;"></div>
+	</div>
+	<div id="gridTest" ui-grid="gridOptions" ui-grid-pagination ui-grid-selection ui-grid-exporter
+		class="myGrid" style="width:99%;height:330px;">
+		<div class="watermark" ng-show="!gridOptions.data.length">No
+			data available</div>
+	</div>
+</div>

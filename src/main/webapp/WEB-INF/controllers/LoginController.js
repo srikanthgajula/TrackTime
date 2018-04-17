@@ -6,17 +6,20 @@ myApp.controller("loginController",function($scope, myFactory, $compile, $window
 	
 	function onSignIn(googleUser) {
 		var profile = googleUser.getBasicProfile();
-		console.log('Name: ' + profile.getName());
-		console.log('Email: ' + profile.getEmail()); 
-		console.log('Image URL: ' + profile.getImageUrl());
 		getUserRole(profile);
 		getAllUserRoles();
+		getAllShifts();
+		getAllDesignations();
+		getAllTechnologies();
+		getAllAccounts();
+		$("#start").trigger("click");
 	}
 	
 	function onFailure(error){
 		if(error.type == "tokenFailed"){
 			showAlert('Please login with @Nisum account');
 		}
+		$("#stop").trigger("click");
 	}
 	
 	function showAlert(message) {
@@ -55,7 +58,44 @@ myApp.controller("loginController",function($scope, myFactory, $compile, $window
 	    	$scope.rolesData = [];
 	    });
 	};
-	
+	function getAllShifts(){
+		$http({
+	        method : "GET",
+	        url : appConfig.appUri + "user/getAllShifts"
+	    }).then(function mySuccess(response) {
+	     	myFactory.setShifts(response.data);
+	    }, function myError(response) {
+	    });
+	};
+	function getAllDesignations(){
+		$http({
+	        method : "GET",
+	        url : appConfig.appUri + "user/getAllDesignations"
+	    }).then(function mySuccess(response) {
+	   	myFactory.setDesignations(response.data);
+	    }, function myError(response) {
+	    });
+	};
+	function getAllTechnologies(){
+		$http({
+	        method : "GET",
+	        url : appConfig.appUri + "user/getSkills"
+	    }).then(function mySuccess(response) {
+	   	myFactory.setTechnologies(response.data);
+	    }, function myError(response) {
+	   
+	    });
+	};
+	function getAllAccounts(){
+		$http({
+	        method : "GET",
+	        url : appConfig.appUri + "user/getAccounts"
+	    }).then(function mySuccess(response) {
+	   	myFactory.setAccounts(response.data);
+	    }, function myError(response) {
+	   
+	    });
+	};
 	function showRegisterEmployeeScreen(profile){
 		$mdDialog.show({
 	      controller: NewEmployeeController,
@@ -84,6 +124,16 @@ myApp.controller("loginController",function($scope, myFactory, $compile, $window
 		$scope.empId = "";
 		$scope.empName = dataToPass.getName();
 		$scope.empEmail = dataToPass.getEmail();
+		$scope.empShift;
+		$scope.shifts = myFactory.getTechnologies(); //["Shift 1(09:00 AM - 06:00 PM)","Shift 2(03:30 PM - 12:30 PM)", "Shift 3(09:00 PM - 06:00 AM)"];
+		
+		$scope.getSelectedShift = function(){
+			if ($scope.empShift !== undefined) {
+				return $scope.empShift;
+			} else {
+				return "Please select  primary skill";
+			}
+		};
 		
 		$scope.validateEmpId = function(){
 			var searchId = $scope.empId;
@@ -120,18 +170,30 @@ myApp.controller("loginController",function($scope, myFactory, $compile, $window
 		$scope.validateFields = function(){
 			var searchId = $scope.empId;
 			var empName = $scope.empName;
+			var empShift = $scope.empShift;
+			var mobileNumber = $scope.mobileNumber;
+			
 			if(searchId == ""){
 				$scope.alertMsg = "Employee ID is mandatory";
 				document.getElementById('empId').focus();
-			}else if(!checkEmpIdRange(searchId)){
+			}else if(searchId != "" && !checkEmpIdRange(searchId)){
 				$scope.alertMsg = 'Employee ID should be in between '+appConfig.empStartId+' - '+appConfig.empEndId;
+				document.getElementById('empId').focus();
+			}else if(searchId != "" && checkRoleExistence(searchId)){
+				$scope.alertMsg = 'Employee is already registered';
 				document.getElementById('empId').focus();
 			}else if(empName == ""){
 				$scope.alertMsg = "Employee Name is mandatory";
 				document.getElementById('empName').focus();
+			}else if(mobileNumber == undefined || mobileNumber == ""){
+				$scope.alertMsg = "Mobile Number is mandatory";
+				document.getElementById('mobileNumber').focus();
+			}else if(empShift == undefined){
+				$scope.alertMsg = "Please select a primary skill";
+				document.getElementById('empShift').focus();
 			}else{
 				$scope.alertMsg = "";
-				var record = {"employeeId":$scope.empId, "employeeName": $scope.empName, "emailId": $scope.empEmail, "role": "Employee"};
+				var record = {"employeeId":$scope.empId, "employeeName": $scope.empName, "emailId": $scope.empEmail, "role": "Employee", "shift": "Shift 1(09:00 AM - 06:00 PM)","mobileNumber":$scope.mobileNumber,"baseTechnology": $scope.empShift};
 				addEmployee(record);
 			}
 		};
@@ -170,15 +232,64 @@ myApp.controller("loginController",function($scope, myFactory, $compile, $window
 		if(role == "HR"){
 			menuItems.push({"menu" : "My Details","icon" : "fa fa-indent fa-2x","path" : "templates/employee.html"});
 			menuItems.push({"menu" : "Employee Details","icon" : "fa fa-users fa-2x","path" : "templates/employees.html"});
-			menuItems.push({"menu" : "Reports","icon" : "fa fa-flag fa-2x","path" : "templates/reports.html"});
-			menuItems.push({"menu" : "Manage Employees","icon" : "fa fa-universal-access fa-2x","path" : "templates/roles.html"});
-		}else if(role == "Manager"){
+			menuItems.push({"menu" : "Reports","icon" : "fa fa-pie-chart fa-2x","path" : "templates/reports.html"});
+			menuItems.push({"menu" : "Manage Employees","icon" : "fa fa-user-plus fa-2x","path" : "templates/roles.html"});
+			menuItems.push({"menu" : "Manage Projects","icon" : "fa fa-tasks fa-2x","path" : "templates/projects.html"});
+			menuItems.push({"menu" : "Attendance Report","icon" : "fa fa-bar-chart fa-2x","path" : "templates/attendanceReport.html"});
+			menuItems.push({"menu" : "Shift Details","icon" : "fa fa-superpowers fa-2x","path" : "templates/shiftdetails.html"});
+			menuItems.push({"menu" : "ReSync Data","icon" : "fa fa-recycle fa-2x","path" : "templates/resyncData.html"});
+			menuItems.push({"menu" : "My Project Allocations","icon" : "fa fa-address-card-o fa-2x","path" : "templates/myProjectAllocations.html"});
+			menuItems.push({"menu" : "My Org","icon" : "fa fa-address-card-o fa-2x","path" : "templates/myOrg.html"});
+			menuItems.push({"menu" : "My Profile","icon" : "fa fa-address-card-o fa-2x","path" : "templates/profile.html"});
+           }else if(role == "Manager"){
 			menuItems.push({"menu" : "My Details","icon" : "fa fa-indent fa-2x","path" : "templates/employee.html"});
-			menuItems.push({"menu" : "Reportee Details","icon" : "fa fa-users fa-2x","path" : "templates/employees.html"});
-			menuItems.push({"menu" : "Manage Reportees","icon" : "fa fa-universal-access fa-2x","path" : "templates/roles.html"});
+			menuItems.push({"menu" : "Reportee Details","icon" : "fa fa-users fa-2x","path" : "templates/reportees.html"});
+			menuItems.push({"menu" : "Manage Team","icon" : "fa fa-sitemap fa-2x","path" : "templates/projectDetails.html"});
+			menuItems.push({"menu" : "View Projects","icon" : "fa fa-tasks fa-2x","path" : "templates/viewProjects.html"});
+			menuItems.push({"menu" : "My Project Allocations","icon" : "fa fa-life-ring fa-2x","path" : "templates/myProjectAllocations.html"});
+			menuItems.push({"menu" : "My Org","icon" : "fa fa-address-card-o fa-2x","path" : "templates/myOrg.html"});
+		    menuItems.push({"menu" : "My Profile","icon" : "fa fa-address-card-o fa-2x","path" : "templates/profile.html"});
 		}else if(role == "Employee"){
 			menuItems.push({"menu" : "My Details","icon" : "fa fa-indent fa-2x","path" : "templates/employee.html"});
+			menuItems.push({"menu" : "My Team","icon" : "fa fa-futbol-o fa-2x","path" : "templates/myTeam.html"});
+			menuItems.push({"menu" : "My Project Allocations","icon" : "fa fa-life-ring fa-2x","path" : "templates/myProjectAllocations.html"});
+		    menuItems.push({"menu" : "My Profile","icon" : "fa fa-address-card-o fa-2x","path" : "templates/profile.html"});
+		}else if(role == "HR Manager"){
+			menuItems.push({"menu" : "My Details","icon" : "fa fa-indent fa-2x","path" : "templates/employee.html"});
+			menuItems.push({"menu" : "Employee Details","icon" : "fa fa-users fa-2x","path" : "templates/employees.html"});
+			menuItems.push({"menu" : "Reports","icon" : "fa fa-pie-chart fa-2x","path" : "templates/reports.html"});
+			menuItems.push({"menu" : "Manage Employees","icon" : "fa fa-user-plus fa-2x","path" : "templates/roles.html"});
+			menuItems.push({"menu" : "Manage Team","icon" : "fa fa-sitemap fa-2x","path" : "templates/projectDetails.html"});
+			menuItems.push({"menu" : "Manage Projects","icon" : "fa fa-tasks fa-2x","path" : "templates/projects.html"});
+			menuItems.push({"menu" : "Attendance Report","icon" : "fa fa-bar-chart fa-2x","path" : "templates/attendanceReport.html"});
+			menuItems.push({"menu" : "Shift Details","icon" : "fa fa-superpowers fa-2x","path" : "templates/shiftdetails.html"});
+			menuItems.push({"menu" : "My Project Allocations","icon" : "fa fa-life-ring fa-2x","path" : "templates/myProjectAllocations.html"});
+			menuItems.push({"menu" : "My Org","icon" : "fa fa-address-card-o fa-2x","path" : "templates/myOrg.html"});
+			menuItems.push({"menu" : "My Profile","icon" : "fa fa-address-card-o fa-2x","path" : "templates/profile.html"});
+		}else if(role == "Lead"){
+			menuItems.push({"menu" : "My Details","icon" : "fa fa-indent fa-2x","path" : "templates/employee.html"});
+			menuItems.push({"menu" : "Reportee Details","icon" : "fa fa-users fa-2x","path" : "templates/reportees.html"});
+			menuItems.push({"menu" : "Manage Team","icon" : "fa fa-sitemap fa-2x","path" : "templates/projectDetails.html"});
+			menuItems.push({"menu" : "My Project Allocations","icon" : "fa fa-life-ring fa-2x","path" : "templates/myProjectAllocations.html"});
+			menuItems.push({"menu" : "My Org","icon" : "fa fa-address-card-o fa-2x","path" : "templates/myOrg.html"});
+			menuItems.push({"menu" : "My Profile","icon" : "fa fa-address-card-o fa-2x","path" : "templates/profile.html"});
+		}else if(role == "Delivery Manager" || role == "Director"){
+			menuItems.push({"menu" : "My Details","icon" : "fa fa-indent fa-2x","path" : "templates/employee.html"});
+			menuItems.push({"menu" : "Employee Details","icon" : "fa fa-users fa-2x","path" : "templates/employees.html"});
+			menuItems.push({"menu" : "Reports","icon" : "fa fa-pie-chart fa-2x","path" : "templates/reports.html"});
+			menuItems.push({"menu" : "Manage Employees","icon" : "fa fa-user-plus fa-2x","path" : "templates/roles.html"});
+			menuItems.push({"menu" : "Manage Team","icon" : "fa fa-sitemap fa-2x","path" : "templates/projectDetails.html"});
+			menuItems.push({"menu" : "Manage Projects","icon" : "fa fa-tasks fa-2x","path" : "templates/projects.html"});
+			menuItems.push({"menu" : "Manage Visa","icon" : "fa fa-tasks fa-2x","path" : "templates/visaList.html"});
+			menuItems.push({"menu" : "Manage Travels","icon" : "fa fa-tasks fa-2x","path" : "templates/onsiteTravelsList.html"});
+			menuItems.push({"menu" : "Attendance Report","icon" : "fa fa-bar-chart fa-2x","path" : "templates/attendanceReport.html"});
+			menuItems.push({"menu" : "Shift Details","icon" : "fa fa-superpowers fa-2x","path" : "templates/shiftdetails.html"});
+			menuItems.push({"menu" : "Dashboard","icon" : "fa fa-life-ring fa-2x","path" : "templates/dashboard.html"});
+			menuItems.push({"menu" : "My Project Allocations","icon" : "fa fa-life-ring fa-2x","path" : "templates/myProjectAllocations.html"});
+			menuItems.push({"menu" : "My Org","icon" : "fa fa-address-card-o fa-2x","path" : "templates/myOrg.html"});
+			menuItems.push({"menu" : "My Profile","icon" : "fa fa-address-card-o fa-2x","path" : "templates/profile.html"});
 		}
+		
 		myFactory.setMenuItems(menuItems);
 		myFactory.setTemplateUrl("templates/employee.html");
 		myFactory.setProfileUrl(profilePicUrl);
@@ -202,7 +313,7 @@ myApp.controller("loginController",function($scope, myFactory, $compile, $window
 	    auth2.disconnect();
 	    
 		//Clear if any values set to factory
-		var menuItems = [];
+	    var menuItems = [], designations = [], accounts = [], technologies = [], shifts = [];
 		myFactory.setEmpId("");
 		myFactory.setEmpName("");
 		myFactory.setEmpEmailId("");
@@ -210,6 +321,10 @@ myApp.controller("loginController",function($scope, myFactory, $compile, $window
 		myFactory.setMenuItems(menuItems);
 		myFactory.setTemplateUrl("");
 		myFactory.setProfileUrl("");
+		myFactory.setDesignations(designations);
+		myFactory.setAccounts(accounts);
+		myFactory.setTechnologies(technologies);
+		myFactory.setShifts(shifts);
 		
 		var element = document.getElementById('home');
 		var path = "'templates/login.html'";
